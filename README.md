@@ -14,3 +14,17 @@ A Project meant to experience and stimulate a hospital management system with fu
     - Flask
 - Sqlite
 
+## Schema
+- Has 3 Users 
+    - Admin
+    - Doctor
+    - Patient
+
+- has Tables : 
+    - Users
+    - Patient
+    - Doctor
+    - Department
+    - Appointment
+    - Treatment
+    - and virtually craetes Medically History (Completed Appointment + Treatments)
