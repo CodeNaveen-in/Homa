@@ -34,7 +34,7 @@ class User(db.Model):
 
     @property
     def is_admin_check(self):
-        return self.is_admin
+        return self.role == UserRole.ADMIN
     
     @staticmethod
     def make_admin():
@@ -73,6 +73,7 @@ class Doctor(db.Model):
     experience = db.Column(db.Integer, nullable=False, default=1)
     full_name = db.Column(db.String(128), nullable=True)
     status = db.Column(db.Enum(Doc_Status), default=Doc_Status.AVAILABLE)
+    department_id = db.Column(db.Integer, db.ForeignKey("departments.id"))
 
     appointments = db.relationship('Appointment', backref='doctor', lazy=True)
 
@@ -82,6 +83,8 @@ class Department(db.Model):
     name = db.Column(db.String(64), nullable=False, unique=True)
     description = db.Column(db.String(1024), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+
+    doctors = db.relationship('Doctor', backref='department', lazy=True)
 
 class Appointment(db.Model):
     __tablename__ = "appointments"
