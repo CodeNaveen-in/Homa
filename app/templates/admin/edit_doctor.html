@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning"><h4>Edit Doctor: {{ doctor.full_name }}</h4></div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ doctor.user.email }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ doctor.full_name }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Department</label>
+                        <select name="department_id" class="form-select">
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if dept.id == doctor.department_id %}selected{% endif %}>{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Status</label>
+                        <select name="status" class="form-select">
+                            <option value="available" {% if doctor.status.value == 'available' %}selected{% endif %}>Available</option>
+                            <option value="leave" {% if doctor.status.value == 'leave' %}selected{% endif %}>On Leave</option>
+                            <option value="blacklisted" {% if doctor.status.value == 'blacklisted' %}selected{% endif %}>Blacklisted</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Experience (Years)</label>
+                        <input type="number" name="experience" class="form-control" value="{{ doctor.experience }}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <a href="{{ url_for('admin_bp.admin_doctors') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

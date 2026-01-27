@@ -1,0 +1,76 @@
+{% if not is_ajax %}
+<div class="position-relative mb-4">
+    <div class="card shadow-sm border-0 p-3">
+        <div class="row g-2">
+            <div class="col">
+                <input type="text" id="live-q" class="form-control" placeholder="Search by name, ID, or contact..." onkeyup="doSearch()">
+            </div>
+            {% if current_user.role.value in ['admin', 'patient'] %}
+            <div class="col-md-3">
+                <select id="live-dept" class="form-select" onchange="doSearch()">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                    <option value="{{ d.name }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="results-target" class="list-group shadow-lg position-absolute w-100 mt-1" 
+         style="z-index: 1050; max-height: 400px; overflow-y: auto; background: white;">
+    </div>
+</div>
+
+<script>
+function doSearch() {
+    const q = document.getElementById('live-q').value;
+    const deptEl = document.getElementById('live-dept');
+    const dept = deptEl ? deptEl.value : '';
+    const target = document.getElementById('results-target');
+
+    // If search is empty, clear the results box immediately
+    if (q.length === 0 && dept === "") {
+        target.innerHTML = "";
+        return;
+    }
+
+    fetch(`/search?q=${q}&department=${dept}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.text())
+    .then(html => {
+        target.innerHTML = html;
+    });
+}
+
+// Close search results if user clicks anywhere else
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.position-relative')) {
+        document.getElementById('results-target').innerHTML = "";
+    }
+});
+</script>
+{% endif %}
+
+{% if is_ajax %}
+{% for item in results %}
+    <div class="list-group-item list-group-item-action p-3">
+        {% if current_user.role.value == 'admin' %}
+            <div class="d-flex justify-content-between">
+                <strong>{{ item.email }}</strong>
+                <span class="badge bg-secondary">{{ item.role.value }}</span>
+            </div>
+        {% elif current_user.role.value == 'doctor' %}
+            <strong>{{ item.full_name }}</strong>
+            <div class="text-muted small">ID: #{{ item.id }} | Phone: {{ item.phone }}</div>
+        {% else %}
+            <strong>{{ item.full_name }}</strong>
+            <div class="text-primary small">{{ item.department.name }} — {{ item.qualification }}</div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="list-group-item text-center text-muted p-4">No results found.</div>
+    {% endfor %}
+{% endif %}

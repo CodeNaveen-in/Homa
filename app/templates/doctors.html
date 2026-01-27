@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <div>
+            <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+            <p class="text-muted mb-0">Overview of hospital activity & management</p>
+        </div>
+        <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-sm btn-warning">Back to Dashboard</a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-primary text-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase opacity-75">Doctors</h6>
+                        <h2 class="fw-bold mb-0">{{ doctors|length }}</h2>
+                    </div>
+                    <i class="bi bi-person-badge fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-success text-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase opacity-75">Patients</h6>
+                        <h2 class="fw-bold mb-0">{{ patients|length }}</h2>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-info text-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase opacity-75">Departments</h6>
+                        <h2 class="fw-bold mb-0">{{ departments|length }}</h2>
+                    </div>
+                    <i class="bi bi-building fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Management -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-semibold mb-0">Doctor Management</h5>
+            <a href="{{ url_for('admin_bp.add_doctor') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Doctor
+            </a>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Qualification</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in doctors %}
+                    <tr>
+                        <td>{{ doc.id }}</td>
+                        <td class="fw-semibold">{{ doc.full_name }}</td>
+                        <td>{{ doc.department.name }}</td>
+                        <td>{{ doc.qualification }}</td>
+                        <td>
+                            <span class="badge rounded-pill
+                                {% if doc.status.value == 'available' %}bg-success
+                                {% elif doc.status.value == 'leave' %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ doc.status.value|capitalize }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

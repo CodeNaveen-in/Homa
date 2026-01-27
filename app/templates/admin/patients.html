@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <div>
+            <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+            <p class="text-muted mb-0">Overview of hospital activity & management</p>
+        </div>
+        <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-sm btn-warning">Back to Dashboard</a>
+    </div>
+    <!-- Stats Cards -->
+
+    <!-- Patient Management -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+            <h5 class="fw-semibold mb-0">Patient Management</h5>
+        </div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Gender</th>
+                        <th>Blood</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>{{ patient.id }}</td>
+                        <td class="fw-semibold">{{ patient.full_name }}</td>
+                        <td>{{ patient.user.email }}</td>
+                        <td>{{ patient.phone }}</td>
+                        <td>{{ patient.gender }}</td>
+                        <td>{{ patient.blood_group }}</td>
+                        <td>
+                            <span class="badge rounded-pill {% if patient.user.is_blocked %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ 'Blocked' if patient.user.is_blocked else 'Active' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}

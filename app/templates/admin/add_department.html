@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Add New Department</h4>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_bp.add_department_post') }}" method="POST">
+                        
+                        <h5 class="text-muted border-bottom pb-2">Department Credentials</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" class="form-control" placeholder="Cardiology" required>
+                            </div>
+
+                        <h5 class="text-muted border-bottom pb-2 mt-4">Professional Details</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label">Description</label>
+                                <input type="text" name="description" class="form-control" placeholder="Meant to help people with heart issues" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Register Department</button>
+                            <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

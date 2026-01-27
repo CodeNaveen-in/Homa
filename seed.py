@@ -1,70 +1,105 @@
+from datetime import datetime, date, timedelta
+import random
+
 from app import create_app
-from app.models import db, User, Department, Doctor, Patient, UserRole, Doc_Status
+from app.models import (
+    db,
+    User,
+    Department,
+    Doctor,
+    Patient,
+    Appointment,
+    Treatment,
+    UserRole,
+    Doc_Status,
+    AP_Status
+)
 from werkzeug.security import generate_password_hash
 
 app = create_app()
 
+
 def seed_database():
     with app.app_context():
-        print("Starting database seeding...")
-        
-        # 1. Clear existing data (Optional - use with caution!)
-        # db.drop_all()
-        # db.create_all()
+        print("🌱 Starting database seeding...")
 
-        # 2. Add Departments
-        depts_data = [
-            {"name": "Cardiology", "desc": "Heart health and cardiovascular surgery."},
-            {"name": "Pediatrics", "desc": "Specialized medical care for children."},
-            {"name": "Neurology", "desc": "Disorders of the nervous system and brain."},
-            {"name": "Orthopedics", "desc": "Musculoskeletal system injuries."},
-            {"name": "General Medicine", "desc": "Primary care and routine checkups."}
+        # -----------------------
+        # Prevent duplicate seeding
+        # -----------------------
+        if Department.query.first():
+            print("⚠️ Database already seeded. Skipping.")
+            return
+
+        # -----------------------
+        # Create Admin
+        # -----------------------
+        User.make_admin()
+
+        # -----------------------
+        # Departments
+        # -----------------------
+        dept_data = [
+            ("Cardiology", "Heart health and cardiovascular care."),
+            ("Pediatrics", "Medical care for infants and children."),
+            ("Neurology", "Nervous system and brain disorders."),
+            ("Orthopedics", "Bone and joint care."),
+            ("General Medicine", "Primary healthcare services."),
         ]
-        
+
         departments = []
-        for d in depts_data:
-            dept = Department(name=d["name"], description=d["desc"])
+        for name, desc in dept_data:
+            dept = Department(name=name, description=desc)
             db.session.add(dept)
             departments.append(dept)
-        
-        db.session.flush() # Push to DB to generate Department IDs
 
-        # 3. Add Doctors
-        # Each Doctor needs a User account first
-        docs_data = [
-            ("DOC-CAR-01", "Dr. Sarah Chen", "MBBS, MD (Cardiology)", "sarah.chen@homa.com", 0),
-            ("DOC-PED-02", "Dr. James Wilson", "MBBS, DCH", "j.wilson@homa.com", 1),
-            ("DOC-NEU-03", "Dr. Elena Rodriguez", "MBBS, DM (Neurology)", "elena.rod@homa.com", 2),
-            ("DOC-ORT-04", "Dr. Marcus Thorne", "MBBS, MS (Ortho)", "m.thorne@homa.com", 3),
-            ("DOC-GEN-05", "Dr. Alan Grant", "MBBS", "a.grant@homa.com", 4)
+        db.session.flush()  # generate IDs
+
+        # -----------------------
+        # Doctors
+        # -----------------------
+        doctors_data = [
+            ("Dr. Sarah Chen", "MBBS, MD (Cardiology)", "sarah.chen@homa.com", 0),
+            ("Dr. James Wilson", "MBBS, DCH", "j.wilson@homa.com", 1),
+            ("Dr. Elena Rodriguez", "MBBS, DM (Neurology)", "elena.rod@homa.com", 2),
+            ("Dr. Marcus Thorne", "MBBS, MS (Ortho)", "m.thorne@homa.com", 3),
+            ("Dr. Alan Grant", "MBBS", "a.grant@homa.com", 4),
         ]
 
-        for doc_id, name, qual, email, dept_idx in docs_data:
+        doctors = []
+
+        for idx, (name, qualification, email, dept_idx) in enumerate(doctors_data, start=1):
             user = User(
                 email=email,
                 password=generate_password_hash("doc123"),
                 role=UserRole.DOCTOR
             )
             db.session.add(user)
-            db.session.flush() # Get user.id
+            db.session.flush()
 
-            profile = Doctor(
-                id=doc_id,
+            doctor = Doctor(
+                id=f"DOC-{dept_idx}-{user.id}",
                 user_id=user.id,
                 full_name=name,
-                qualification=qual,
+                qualification=qualification,
+                experience=random.randint(3, 15),
+                status=Doc_Status.AVAILABLE,
                 department_id=departments[dept_idx].id
             )
-            db.session.add(profile)
+            db.session.add(doctor)
+            doctors.append(doctor)
 
-        # 4. Add Patients
+        # -----------------------
+        # Patients
+        # -----------------------
         patients_data = [
             ("John Doe", 34, "Male", "O+", "john.doe@gmail.com"),
             ("Jane Smith", 29, "Female", "A-", "jane.smith@yahoo.com"),
             ("Robert Brown", 52, "Male", "B+", "r.brown@outlook.com"),
             ("Emily White", 19, "Female", "AB+", "e.white@provider.com"),
-            ("Michael Scott", 45, "Male", "O-", "m.scott@dunder.com")
+            ("Michael Scott", 45, "Male", "O-", "m.scott@dunder.com"),
         ]
+
+        patients = []
 
         for name, age, gender, blood, email in patients_data:
             user = User(
@@ -75,18 +110,96 @@ def seed_database():
             db.session.add(user)
             db.session.flush()
 
-            profile = Patient(
+            patient = Patient(
                 user_id=user.id,
                 full_name=name,
                 age=age,
                 gender=gender,
                 blood_group=blood,
-                phone=f"555-{age}{gender[0]}99" # Unique phone generator
+                phone=f"555-{user.id:03d}"
             )
-            db.session.add(profile)
+            db.session.add(patient)
+            patients.append(patient)
 
+        db.session.flush()
+
+        # -----------------------
+        # Appointments
+        # -----------------------
+        appointments = []
+
+        status_pool = (
+            [AP_Status.COMPLETED] * 4 +
+            [AP_Status.BOOKED] * 3 +
+            [AP_Status.CANCELLED] * 3
+        )
+
+        random.shuffle(status_pool)
+
+        for status in status_pool:
+            patient = random.choice(patients)
+            doctor = random.choice(doctors)
+
+            if status == AP_Status.COMPLETED:
+                ap_date = date.today() - timedelta(days=random.randint(1, 14))
+            else:
+                ap_date = date.today() + timedelta(days=random.randint(1, 14))
+
+            appointment = Appointment(
+                patient_id=patient.id,
+                doctor_id=doctor.id,
+                date=ap_date,
+                time=datetime.utcnow(),
+                status=status
+            )
+            db.session.add(appointment)
+            appointments.append(appointment)
+
+        db.session.flush()
+
+        # -----------------------
+        # Treatments (COMPLETED only)
+        # -----------------------
+        diagnoses = [
+            "Common Cold",
+            "Hypertension",
+            "Migraine",
+            "Type 2 Diabetes",
+            "Joint Pain"
+        ]
+
+        prescriptions = [
+            "Paracetamol 500mg twice daily",
+            "Amlodipine 5mg once daily",
+            "Ibuprofen after meals",
+            "Metformin 500mg twice daily",
+            "Physiotherapy and pain relievers"
+        ]
+
+        for ap in appointments:
+            if ap.status == AP_Status.COMPLETED:
+                treatment = Treatment(
+                    appointment_id=ap.id,
+                    diagnosis=random.choice(diagnoses),
+                    prescription=random.choice(prescriptions),
+                    notes="Patient advised rest, hydration, and follow-up if symptoms persist.",
+                    follow_up=random.choice([True, False])
+                )
+                db.session.add(treatment)
+
+        # -----------------------
+        # Commit
+        # -----------------------
         db.session.commit()
-        print("Database successfully seeded with 5 Departments, 5 Doctors, and 5 Patients!")
+
+        print("✅ Database seeded successfully!")
+        print("   - 1 Admin")
+        print("   - 5 Departments")
+        print("   - 5 Doctors")
+        print("   - 5 Patients")
+        print("   - 10 Appointments (Booked / Completed / Cancelled)")
+        print("   - Treatments for completed appointments only")
+
 
 if __name__ == "__main__":
     seed_database()

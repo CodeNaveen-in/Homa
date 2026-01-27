@@ -1,7 +1,9 @@
-from flask import Blueprint, request, redirect, url_for, abort, render_template
+from flask import Blueprint, request, redirect, url_for, abort, render_template, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user, current_user, login_required, logout_user
-from app.models import User, Patient, UserRole, db
+from app.models import User, Patient, Doctor ,UserRole, Department, db
+from app.decorators import role_required
+from sqlalchemy import or_
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -46,9 +48,10 @@ def register_post():
         )
         db.session.add(new_patient)
         db.session.commit()
+        flash("Congratulations, Registration SUccessful", "success")
         return redirect(url_for("auth_bp.login"))
         
-    return "Show Register HTML Here"
+    return redirect(url_for("auth_bp.login"))
 
 
 # ---------------- LOGIN ----------------
@@ -89,15 +92,15 @@ def profile():
 
 
 # ---------------- ADMIN ONLY ----------------
-@auth_bp.route("/admin")
+@auth_bp.route("/dashboard")
 @login_required
 def admin_dashboard():
     if not current_user.is_admin_check:
         abort(403)
-    return "ADMIN ACCESS GRANTED"
+    return redirect(url_for("admin_bp.dashboard"))
 
 # ---------------- PATIENT ONLY ----------------
-@auth_bp.route("/patient")
+@auth_bp.route("/dashboard")
 @login_required
 def patient_dashboard():
     if current_user.role != UserRole.PATIENT:
@@ -106,7 +109,7 @@ def patient_dashboard():
 
 
 # ---------------- DOCTOR ONLY ----------------
-@auth_bp.route("/doctor")
+@auth_bp.route("/dashboardr")
 @login_required
 def doctor_dashboard():
     if current_user.role != UserRole.DOCTOR:
@@ -119,4 +122,54 @@ def doctor_dashboard():
 @login_required
 def logout():
     logout_user()
-    return "Logged out successfully"
+    flash("You have been logged out", "warning")
+    return redirect(url_for("auth_bp.login"))
+
+@auth_bp.route("/search")
+@login_required
+def search():
+    q = request.args.get('q', '').strip()
+    dept_name = request.args.get('department', '')
+    role = current_user.role
+    results = []
+
+    if role == UserRole.ADMIN:
+        # Join User with Patient and Doctor to get full names
+        query = User.query.outerjoin(Patient).outerjoin(Doctor)
+        if q:
+            query = query.filter(or_(
+                User.email.ilike(f"%{q}%"),
+                Patient.full_name.ilike(f"%{q}%"),
+                Doctor.full_name.ilike(f"%{q}%"),
+                Patient.phone.ilike(f"%{q}%")
+            ))
+        results = query.all()
+
+    # 2. DOCTOR LOGIC: Search Patients (Name, ID, Phone)
+    elif role == UserRole.DOCTOR:
+        query = Patient.query
+        if q:
+            query = query.filter(or_(
+                Patient.full_name.ilike(f"%{q}%"),
+                Patient.id.like(f"%{q}%"),
+                Patient.phone.like(f"%{q}%")
+            ))
+        results = query.all()
+
+    # 3. PATIENT LOGIC: Search Doctors (Name, Specialization)
+    elif role == UserRole.PATIENT:
+        query = Doctor.query.join(Department)
+        if q:
+            query = query.filter(Doctor.full_name.ilike(f"%{q}%"))
+        if dept_name:
+            query = query.filter(Department.name == dept_name)
+        results = query.all()
+
+    # AJAX check for the "Amazon-style" update
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' #
+    return render_template(
+        "searchbar.html", 
+        results=results, 
+        is_ajax=is_ajax, 
+        departments=Department.query.all() #
+    )

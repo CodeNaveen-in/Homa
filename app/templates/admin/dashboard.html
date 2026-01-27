@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+        border: none !important;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+    }
+
+    .table thead th {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-top: none;
+    }
+
+    .btn-action {
+        transition: all 0.2s;
+    }
+
+    .status-pill {
+        width: 100px;
+    }
+
+    .table-responsive {
+        border-radius: 8px;
+    }
+
+    .section-title {
+        position: relative;
+        padding-left: 15px;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        height: 60%;
+        width: 4px;
+        background: #0d6efd;
+        border-radius: 2px;
+    }
+</style>
+
+<div class="container-fluid px-4 py-4 bg-light min-vh-100">
+
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Admin Dashboard</h2>
+            <p class="text-secondary mb-0"><i class="bi bi-calendar3 me-2"></i>Overview of hospital activity &
+                management</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_bp.add_doctor') }}" class="btn btn-primary shadow-sm px-4">
+                <i class="bi bi-person-plus-fill me-2"></i>Add Doctor
+            </a>
+            <a href="{{ url_for('admin_bp.add_department') }}" class="btn btn-white border bg-white shadow-sm px-4">
+                <i class="bi bi-building-plus me-2"></i>Add Dept
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card shadow-sm bg-primary text-white">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-2 opacity-75 fw-bold small">Total Doctors</h6>
+                        <h2 class="fw-bold mb-0 display-6">{{ doctors|length }}</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-person-badge fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm bg-success text-white">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-2 opacity-75 fw-bold small">Active Patients</h6>
+                        <h2 class="fw-bold mb-0 display-6">{{ patients|length }}</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm bg-info text-white">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-2 opacity-75 fw-bold small">Departments</h6>
+                        <h2 class="fw-bold mb-0 display-6">{{ departments|length }}</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-building fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm bg-warning text-white">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-2 opacity-75 fw-bold small">Total Appointments</h6>
+                        <h2 class="fw-bold mb-0 display-6">{{ appointments|length }}</h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                        <i class="bi bi-person-badge fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0 section-title">Doctor Management</h5>
+            <a href="{{ url_for('admin_bp.admin_doctors') }}" class="btn btn-sm btn-outline-warning fw-bold px-3">
+                Show All Doctors <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Doctor Name</th>
+                            <th>Department</th>
+                            <th>Qualification</th>
+                            <th>Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in doctors %}
+                        <tr>
+                            <td class="ps-4"><span class="text-muted small">#{{ doc.id }}</span></td>
+                            <td class="fw-bold text-dark">{{ doc.full_name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ doc.department.name }}</span></td>
+                            <td>{{ doc.qualification }}</td>
+                            <td>
+                                <span class="badge status-pill rounded-pill py-2
+                                    {% if doc.user.is_blocked %}bg-dark
+                                    {% elif doc.status.value == 'available' %}bg-success
+                                    {% elif doc.status.value == 'leave' %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ 'Blacklisted' if doc.user.is_blocked else doc.status.value|capitalize }}
+                                </span>
+                            </td>
+                            <td class="text-center pe-4">
+                                {% if doc.user.is_blocked %}
+                                <a href="{{ url_for('admin_bp.unblacklist', user_id=doc.user.id) }}"
+                                    class="btn btn-sm btn-success px-3">Unblacklist</a>
+                                {% else %}
+                                <a href="{{ url_for('admin_bp.blacklist', user_id=doc.user.id) }}"
+                                    class="btn btn-sm btn-outline-danger px-3">Blacklist</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0 section-title" style="border-left-color: #0dcaf0;">Department Management</h5>
+            <a href="#" class="btn btn-sm btn-outline-warning fw-bold px-3">
+                Show All Departments <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Dept Name</th>
+                            <th style="width: 40%;">Description</th>
+                            <th>Status</th>
+                            <th>Staff Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td class="ps-4 text-muted small">#{{ dept.id }}</td>
+                            <td class="fw-bold">{{ dept.name }}</td>
+                            <td class="text-muted small">{{ dept.description[:80] }}...</td>
+                            <td>
+                                <span
+                                    class="badge {% if dept.is_active %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} px-3">
+                                    {{ 'Active' if dept.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="fw-bold text-center text-primary">{{ dept.doctors | count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0 section-title" style="border-left-color: #198754;">Patient Management</h5>
+            <a href="{{ url_for('admin_bp.admin_patients') }}" class="btn btn-sm btn-outline-warning fw-bold px-3">
+                Show All Patients <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Name</th>
+                            <th>Contact Info</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th class="text-center">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td class="ps-4 text-muted small">#{{ patient.id }}</td>
+                            <td>
+                                <div class="fw-bold">{{ patient.full_name }}</div>
+                                <div class="small text-muted">{{ patient.user.email }}</div>
+                            </td>
+                            <td><i class="bi bi-telephone me-1"></i> {{ patient.phone }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border me-1">{{ patient.gender }}</span>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{
+                                    patient.blood_group }}</span>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge rounded-pill {% if patient.user.is_blocked %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ 'Blocked' if patient.user.is_blocked else 'Active' }}
+                                </span>
+                            </td>
+                            <td class="text-center pe-4">
+                                {% if patient.user.is_blocked %}
+                                <a href="{{ url_for('admin_bp.unblacklist', user_id=patient.user.id) }}"
+                                    class="btn btn-sm btn-success w-100">Unblock</a>
+                                {% else %}
+                                <a href="{{ url_for('admin_bp.blacklist', user_id=patient.user.id) }}"
+                                    class="btn btn-sm btn-outline-danger w-100">Blacklist</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h5 class="fw-bold mb-0 section-title" style="border-left-color: #ffc107;">Appointment Management</h5>
+            <a href="{{ url_for('admin_bp.admin_appointments') }}" class="btn btn-sm btn-outline-warning fw-bold px-3">
+                Show All Appointments <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Patient</th>
+                            <th>Assigned Doctor</th>
+                            <th>Schedule</th>
+                            <th>Current Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ap in appointments %}
+                        <tr>
+                            <td class="ps-4 text-muted small">#{{ ap.id }}</td>
+                            <td class="fw-bold">{{ ap.patient.full_name }}</td>
+                            <td>
+                                <div>{{ ap.doctor.full_name }}</div>
+                                <div class="small text-muted text-uppercase">{{ ap.doctor.department.name }}</div>
+                            </td>
+                            <td><i class="bi bi-calendar-event me-2 text-primary"></i>{{ ap.date }}</td>
+                            <td>
+                                <span class="badge rounded-pill py-2 px-3
+                                    {% if ap.status.value == 'booked' %}bg-primary
+                                    {% elif ap.status.value == 'completed' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ ap.status.value|capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
