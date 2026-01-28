@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row align-items-center mb-4 pb-3 border-bottom">
+        <div class="col">
+            <h2 class="fw-bold mb-0">Doctor Schedule</h2>
+            <p class="text-muted mb-0">Viewing all assigned appointments grouped by day.</p>
+        </div>
+        <div class="col-auto">
+            <form action="{{ url_for('doctor_bp.update_availability') }}" method="POST"
+                class="bg-light p-2 rounded border d-flex align-items-center">
+                <span class="small fw-bold me-2">Availability:</span>
+                <select name="status" class="form-select form-select-sm border-0 bg-transparent fw-bold text-primary"
+                    onchange="this.form.submit()">
+                    <option value="AVAILABLE" {% if doctor.status.name=='AVAILABLE' %}selected{% endif %}>Available</option>
+                    <option value="LEAVE" {% if doctor.status.name=='LEAVE' %}selected{% endif %}>On Leave</option>
+                    <option value="BLOCKED" {% if doctor.status.name=='BLOCKED' %}selected{% endif %}>Busy</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    {% if grouped_appointments %}
+    {% for date, appts in grouped_appointments.items() %}
+    <div class="mb-5">
+        <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary text-white px-3 py-1 rounded-pill fw-bold shadow-sm">
+                {{ date.strftime('%A, %b %d, %Y') }}
+            </div>
+            <div class="flex-grow-1 ms-3 border-top"></div>
+            <span class="ms-2 badge bg-secondary">{{ appts|length }} Appointments</span>
+        </div>
+
+        <div class="row g-3">
+            {% for appt in appts %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 border-top border-4 {% if appt.status.name == 'COMPLETED' %}border-success{% elif appt.status.name == 'CANCELLED' %}border-danger{% else %}border-warning{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">{{ appt.time.strftime('%I:%M %p') }}</h5>
+                            <span class="badge {% if appt.status.name == 'COMPLETED' %}bg-success{% elif appt.status.name == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                {{ appt.status.value|upper }}
+                            </span>
+                        </div>
+
+                        <h6 class="text-dark fw-bold mb-1">{{ appt.patient.full_name }}</h6>
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-person me-1"></i> {{ appt.patient.age }} yrs • {{ appt.patient.gender }}<br>
+                            <i class="bi bi-telephone me-1"></i> {{ appt.patient.phone }}
+                        </div>
+
+                        <div class="d-grid gap-2 d-flex">
+                            {% if appt.status.name == 'BOOKED' %}
+                            <a href="{{ url_for('doctor_bp.add_treatment', appointment_id=appt.id) }}"
+                                class="btn btn-sm btn-primary flex-grow-1">
+                                <i class="bi bi-medical-check me-1"></i> Treat
+                            </a>
+                            {% endif %}
+
+                            <a href="{{ url_for('doctor_bp.medical_history', patient_id=appt.patient_id) }}"
+                                class="btn btn-sm btn-outline-info {% if appt.status.name == 'COMPLETED' %}flex-grow-1{% endif %}">
+                                <i class="bi bi-clock-history"></i> {% if appt.status.name != 'BOOKED' %}History{% endif %}
+                            </a>
+
+                            {% if appt.status.name != 'COMPLETED' %}
+                            <form action="{{ url_for('doctor_bp.update_appointment_status', appointment_id=appt.id) }}"
+                                method="POST" class="d-inline">
+                                {% if appt.status.name == 'CANCELLED' %}
+                                <button type="submit" name="status" value="BOOKED"
+                                    class="btn btn-sm btn-outline-success" title="Restore Appointment">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                                {% else %}
+                                <button type="submit" name="status" value="CANCELLED"
+                                    class="btn btn-sm btn-outline-danger" title="Cancel Appointment">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                {% endif %}
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center py-5 bg-light rounded border border-dashed">
+        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+        <h5 class="mt-3">No appointments found</h5>
+        <p class="text-muted">You have a clear schedule!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

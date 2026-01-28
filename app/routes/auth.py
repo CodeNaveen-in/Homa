@@ -114,7 +114,7 @@ def patient_dashboard():
 def doctor_dashboard():
     if current_user.role != UserRole.DOCTOR:
         abort(403)
-    return "DOCTOR ACCESS GRANTED"
+    return redirect(url_for("doctor_bp.dashboard"))
 
 
 # ---------------- LOGOUT ----------------

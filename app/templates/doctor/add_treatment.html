@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">New Treatment Record</h5>
+        </div>
+        <a href="{{ url_for('doctor_bp.dashboard') }}" class="btn btn-warning"> Return to dashboard</a>
+        <div class="card-body">
+            <h6>Patient: <strong>{{ appointment.patient.full_name }}</strong></h6>
+            <hr>
+            <form action="{{ url_for('doctor_bp.add_treatment', appointment_id=appointment.id) }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Diagnosis</label>
+                    <input type="text" name="diagnosis" class="form-control" required placeholder="Main medical finding">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Prescription</label>
+                    <textarea name="prescription" class="form-control" rows="3" required placeholder="Medicine and dosage"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Clinical Notes</label>
+                    <textarea name="notes" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="follow_up" id="followUp">
+                    <label class="form-check-label" for="followUp">Requires Follow-up Appointment</label>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Save & Complete Appointment</button>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
