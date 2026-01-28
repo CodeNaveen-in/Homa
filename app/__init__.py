@@ -5,6 +5,7 @@ from app.routes.auth import auth_bp
 from app.routes.admin import admin_bp
 from app.routes.doctor import doctor_bp
 from app.routes.patient import patient_bp
+from app.api import api_bp
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
 
@@ -21,6 +22,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(doctor_bp)
     app.register_blueprint(patient_bp)
+    app.register_blueprint(api_bp)
 
     login_manager = LoginManager()
     login_manager.init_app(app)
