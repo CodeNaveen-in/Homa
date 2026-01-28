@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">Book an Appointment</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                        <div class="bg-light rounded-circle p-3 me-3">
+                            <i class="bi bi-person-badge fs-2 text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark">Dr. {{ doctor.full_name }}</h5>
+                            <p class="text-muted mb-0">{{ doctor.department.name }} • {{ doctor.qualification }}</p>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('patient_bp.book_appointment', doctor_id=doctor.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label for="date" class="form-label fw-bold">Select Date</label>
+                            <input type="date" name="date" id="appointment_date" class="form-control" required>
+                            <div class="form-text">Choose a day for your visit.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="time" class="form-label fw-bold">Select Time</label>
+                            <input type="time" name="time" class="form-control" required>
+                            <div class="form-text">Standard clinic hours are 09:00 AM - 05:00 PM.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-calendar-check me-2"></i>Confirm Booking
+                            </button>
+                            <a href="{{ url_for('patient_bp.search_doctors') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4 border-0 shadow-sm">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Note:</strong> You can manage or cancel your appointments from your dashboard at any time.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Logic to prevent selecting past dates
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('appointment_date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    });
+</script>
+{% endblock %}

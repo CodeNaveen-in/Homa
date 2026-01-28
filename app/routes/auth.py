@@ -71,11 +71,11 @@ def login_post():
             
             # Redirect based on role
             if user.role == UserRole.ADMIN:
-                return redirect(url_for("auth_bp.admin_dashboard"))
+                return redirect(url_for("admin_bp.dashboard"))
             elif user.role == UserRole.DOCTOR:
-                return redirect(url_for("auth_bp.doctor_dashboard"))
+                return redirect(url_for("doctor_bp.dashboard"))
             else:
-                return redirect(url_for("auth_bp.patient_dashboard"))
+                return redirect(url_for("patient_bp.dashboard"))
 
         return "Invalid credentials", 401
     return "Show Login HTML Here"
@@ -91,30 +91,30 @@ def profile():
     )
 
 
-# ---------------- ADMIN ONLY ----------------
-@auth_bp.route("/dashboard")
-@login_required
-def admin_dashboard():
-    if not current_user.is_admin_check:
-        abort(403)
-    return redirect(url_for("admin_bp.dashboard"))
+# # ---------------- ADMIN ONLY ----------------
+# @auth_bp.route("/dashboard")
+# @login_required
+# def admin_dashboard():
+#     if not current_user.is_admin_check:
+#         abort(403)
+#     return redirect(url_for("admin_bp.dashboard"))
 
-# ---------------- PATIENT ONLY ----------------
-@auth_bp.route("/dashboard")
-@login_required
-def patient_dashboard():
-    if current_user.role != UserRole.PATIENT:
-        abort(403)
-    return "PATIENT ACCESS GRANTED"
+# # ---------------- PATIENT ONLY ----------------
+# @auth_bp.route("/dashboard")
+# @login_required
+# def patient_dashboard():
+#     # if current_user.role != UserRole.PATIENT:
+#     #     abort(403)
+#     return redirect(url_for("patient_bp.dashboard"))
 
 
-# ---------------- DOCTOR ONLY ----------------
-@auth_bp.route("/dashboardr")
-@login_required
-def doctor_dashboard():
-    if current_user.role != UserRole.DOCTOR:
-        abort(403)
-    return redirect(url_for("doctor_bp.dashboard"))
+# # ---------------- DOCTOR ONLY ----------------
+# @auth_bp.route("/dashboard")
+# @login_required
+# def doctor_dashboard():
+#     if current_user.role != UserRole.DOCTOR:
+#         abort(403)
+#     return redirect(url_for("doctor_bp.dashboard"))
 
 
 # ---------------- LOGOUT ----------------

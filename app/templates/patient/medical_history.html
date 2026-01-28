@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">My Medical History</h2>
+        <a href="{{ url_for('patient_bp.dashboard') }}" class="btn btn-sm btn-secondary">Back to Dashboard</a>
+    </div>
+
+    {% if history %}
+    <div class="row g-4">
+        {% for appt in history %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center border-end">
+                            <h5 class="mb-0 fw-bold">{{ appt.date.strftime('%b %d') }}</h5>
+                            <small class="text-muted">{{ appt.date.strftime('%Y') }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-primary mb-1">Doctor</h6>
+                            <p class="mb-0 fw-bold">Dr. {{ appt.doctor.full_name }}</p>
+                            <small class="text-muted">{{ appt.doctor.department.name }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            {% for treat in appt.treatments %}
+                            <div class="mb-2">
+                                <span class="badge bg-light text-dark border mb-1">Diagnosis</span>
+                                <p class="small mb-2">{{ treat.diagnosis }}</p>
+                                
+                                <span class="badge bg-success-subtle text-success border border-success-subtle mb-1">Prescription</span>
+                                <p class="fw-bold text-success mb-0">{{ treat.prescription }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-light rounded">
+        <i class="bi bi-folder-x fs-1 text-muted"></i>
+        <p class="mt-3 text-muted">You don't have any completed medical records yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

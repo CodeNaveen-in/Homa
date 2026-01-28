@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Welcome, {{ current_user.patient_profile.full_name }}</h3>
+    
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-primary text-white">Upcoming Appointments</div>
+        <div class="list-group list-group-flush">
+            {% for appt in upcoming %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Dr. {{ appt.doctor.full_name }}</strong><br>
+                    <small class="text-muted">{{ appt.date }} at {{ appt.time.strftime('%H:%M') }}</small>
+                </div>
+                <form action="{{ url_for('patient_bp.cancel_appointment', appt_id=appt.id) }}" method="POST">
+                    <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="p-3 text-center text-muted">No upcoming appointments. <a href="{{ url_for('patient_bp.search_doctors') }}">Book one?</a></div>
+            {% endfor %}
+        </div>
+    </div>
+    <a href="{{ url_for('patient_bp.medical_history') }}" class="btn btn-outline-primary shadow-sm">
+    <i class="bi bi-clock-history me-2"></i>View My Medical History
+</a>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">Medical History & Prescriptions</div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Doctor</th>
+                        <th>Diagnosis</th>
+                        <th>Prescription</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in past %}
+                    {% for treat in appt.treatments %}
+                    <tr>
+                        <td>{{ appt.date }}</td>
+                        <td>Dr. {{ appt.doctor.full_name }}</td>
+                        <td>{{ treat.diagnosis }}</td>
+                        <td><span class="text-primary">{{ treat.prescription }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr><td colspan="4" class="text-center p-3 text-muted">No past records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
